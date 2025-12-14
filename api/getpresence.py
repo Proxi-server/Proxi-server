@@ -8,6 +8,7 @@ app = Flask(__name__)
 # URL официального Roblox API
 ROBLOX_PRESENCE_API = "https://presence.roblox.com/v1/presence/users"
 
+# Главный маршрут для обработки запросов
 @app.route('/getpresence', methods=['POST'])
 def get_user_presence_flask():
     
@@ -30,15 +31,13 @@ def get_user_presence_flask():
     
     # 3. Отправляем POST-запрос на официальный API Roblox
     try:
-        # Убираем проверку SSL (verify=False) только для устранения возможных ошибок Vercel/requests, 
-        # хотя обычно это не рекомендуется! Добавляем таймаут.
         roblox_response = requests.post(
             ROBLOX_PRESENCE_API, 
             json=roblox_payload,
             timeout=10, 
-            verify=True # Возвращаем True, если проблема не в SSL.
+            verify=True
         )
-        roblox_response.raise_for_status() 
+        roblox_response.raise_for_status()
         roblox_data = roblox_response.json()
 
     except requests.exceptions.RequestException as e:
@@ -63,5 +62,7 @@ def get_user_presence_flask():
         "TargetGameId": game_id
     })
 
-def handler(event, context):
-    return app(event, context)
+# Render будет использовать Gunicorn для запуска приложения, 
+# но эта секция нужна для локального тестирования
+if __name__ == "__main__":
+    app.run(debug=True)
